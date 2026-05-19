@@ -115,7 +115,6 @@ public class VistaPrincipal extends JFrame {
         p.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         p.setBackground(COLOR_FONDO_APP);
 
-        // Panel de formulario mejor alineado
         JPanel form = new JPanel(new GridLayout(2, 4, 15, 15));
         form.setBackground(COLOR_TARJETA);
         form.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -125,26 +124,21 @@ public class VistaPrincipal extends JFrame {
         JTextField tCap = crearInputClaro();
         JTextField tTar = crearInputClaro();
 
-        // Fila 1
         form.add(crearLabel("Nombre:"));
         form.add(tNom);
         form.add(crearLabel("Dirección:"));
         form.add(tDir);
-        
-        // Fila 2
         form.add(crearLabel("Capacidad:"));
         form.add(tCap);
         form.add(crearLabel("Tarifa ($):"));
         form.add(tTar);
 
-        // Panel del botón
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         btnPanel.setBackground(COLOR_TARJETA);
         JButton btn = new JButton("💾 Guardar Parqueadero");
         estilizarBoton(btn, COLOR_AZUL_BRILLANTE);
         btnPanel.add(btn);
 
-        // Panel superior (formulario + botón)
         JPanel topPanel = new JPanel(new BorderLayout(10, 10));
         topPanel.setBackground(COLOR_FONDO_APP);
         topPanel.add(form, BorderLayout.CENTER);
@@ -156,7 +150,11 @@ public class VistaPrincipal extends JFrame {
         DefaultTableModel model = new DefaultTableModel(cols, 0);
         JTable table = new JTable(model);
         estilizarTabla(table);
-        p.add(new JScrollPane(table), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(table);
+        p.add(scroll, BorderLayout.CENTER);
+
+        // ←←← CARGAR DATOS DE PARQUEADEROS ←←←
+        cargarParqueaderosEnTabla(table);
 
         btn.addActionListener(e -> {
             try {
@@ -168,6 +166,8 @@ public class VistaPrincipal extends JFrame {
                 pDao.agregar(par);
                 JOptionPane.showMessageDialog(this, "Guardado con éxito", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 tNom.setText(""); tDir.setText(""); tCap.setText(""); tTar.setText("");
+                // Recargar la tabla
+                cargarParqueaderosEnTabla(table);
             } catch(Exception ex) { 
                 JOptionPane.showMessageDialog(this, "Error: "+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); 
             }
@@ -201,7 +201,11 @@ public class VistaPrincipal extends JFrame {
         DefaultTableModel model = new DefaultTableModel(cols, 0);
         JTable table = new JTable(model);
         estilizarTabla(table);
-        p.add(new JScrollPane(table), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(table);
+        p.add(scroll, BorderLayout.CENTER);
+
+        // ←←← CARGAR DATOS DE ESPACIOS ←←←
+        cargarEspaciosEnTabla(table);
 
         btn.addActionListener(e -> {
             try {
@@ -212,6 +216,8 @@ public class VistaPrincipal extends JFrame {
                 eDao.agregar(esp);
                 JOptionPane.showMessageDialog(this, "Espacio creado", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 tNum.setText("");
+                // Recargar la tabla
+                cargarEspaciosEnTabla(table);
             } catch(Exception ex) { 
                 JOptionPane.showMessageDialog(this, "Error: "+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); 
             }
@@ -225,7 +231,6 @@ public class VistaPrincipal extends JFrame {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         mainPanel.setBackground(COLOR_FONDO_APP);
 
-        // Formulario mejor alineado
         JPanel formPanel = new JPanel(new GridLayout(2, 4, 15, 15));
         formPanel.setBackground(COLOR_TARJETA);
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -248,7 +253,6 @@ public class VistaPrincipal extends JFrame {
         mainPanel.add(formPanel);
         mainPanel.add(Box.createVerticalStrut(15));
 
-        // Panel de botones
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnPanel.setBackground(COLOR_FONDO_APP);
         btnPanel.setMaximumSize(new Dimension(1000, 60));
@@ -273,7 +277,6 @@ public class VistaPrincipal extends JFrame {
         scroll.setPreferredSize(new Dimension(900, 300));
         mainPanel.add(scroll);
 
-        // Lógica de botones (igual que antes)
         btnEntrada.addActionListener(e -> {
             try {
                 if(txtPlaca.getText().isEmpty()) throw new Exception("Falta Placa");
@@ -367,7 +370,63 @@ public class VistaPrincipal extends JFrame {
         return p;
     }
 
-    // Métodos auxiliares
+    // ========================================================================
+    // MÉTODOS NUEVOS PARA CARGAR DATOS EN TABLAS
+    // ========================================================================
+
+    private void cargarParqueaderosEnTabla(JTable table) {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+        
+        try {
+            Connection conn = conexion.DatabaseConnection.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM parqueaderos");
+            
+            while(rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getInt("id_parqueadero"),
+                    rs.getString("nombre"),
+                    rs.getString("direccion"),
+                    rs.getInt("capacidad"),
+                    "$" + rs.getDouble("tarifa_por_hora")
+                });
+            }
+            conn.close();
+        } catch(SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al cargar parqueaderos: " + e.getMessage());
+        }
+    }
+
+    private void cargarEspaciosEnTabla(JTable table) {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+        
+        try {
+            Connection conn = conexion.DatabaseConnection.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM espacios");
+            
+            while(rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getInt("id_espacio"),
+                    rs.getInt("id_parqueadero"),
+                    rs.getString("numero_espacio"),
+                    rs.getBoolean("estado") ? "LIBRE" : "OCUPADO"
+                });
+            }
+            conn.close();
+        } catch(SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al cargar espacios: " + e.getMessage());
+        }
+    }
+
+    // ========================================================================
+    // MÉTODOS AUXILIARES
+    // ========================================================================
+
     private JTextField crearInputClaro() {
         JTextField f = new JTextField();
         f.setBackground(Color.WHITE);
@@ -411,7 +470,7 @@ public class VistaPrincipal extends JFrame {
         
         JTableHeader header = table.getTableHeader();
         header.setBackground(new Color(240, 240, 240));
-        header.setForeground(COLOR_TEXTO_NEGRO);  // TEXTO NEGRO EN ENCABEZADOS
+        header.setForeground(COLOR_TEXTO_NEGRO);
         header.setFont(new Font("Segoe UI", Font.BOLD, 12));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, COLOR_BORDE));
     }
