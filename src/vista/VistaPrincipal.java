@@ -17,18 +17,15 @@ import java.util.List;
 
 public class VistaPrincipal extends JFrame {
 
-    // === PALETA DE COLORES AZUL Y NEGRO CON TEXTO NEGRO ===
-    private final Color COLOR_FONDO_APP = new Color(240, 242, 245);   // Gris muy claro (Fondo general)
-    private final Color COLOR_TARJETA = Color.WHITE;                 // Blanco puro (Paneles/Formularios)
-    private final Color COLOR_AZUL_BRILLANTE = new Color(37, 99, 235);// Azul intenso (Acentos)
-    private final Color COLOR_VERDE_EXITO = new Color(22, 163, 74);   // Verde oscuro (Entrada)
-    private final Color COLOR_ROJO_PELIGRO = new Color(220, 38, 38);  // Rojo oscuro (Salida)
-    
-    // TEXTOS EN NEGRO
-    private final Color COLOR_TEXTO_NEGRO = Color.BLACK;             // Texto principal
-    private final Color COLOR_TEXTO_GRIS_OSCURO = new Color(55, 65, 81); // Texto secundario (Labels)
-    
-    private final Color COLOR_BORDE = new Color(203, 213, 225);       // Bordes sutiles grises
+    // === COLORES ===
+    private final Color COLOR_FONDO_APP = new Color(240, 242, 245);
+    private final Color COLOR_TARJETA = Color.WHITE;
+    private final Color COLOR_AZUL_BRILLANTE = new Color(37, 99, 235);
+    private final Color COLOR_VERDE_EXITO = new Color(22, 163, 74);
+    private final Color COLOR_ROJO_PELIGRO = new Color(220, 38, 38);
+    private final Color COLOR_TEXTO_NEGRO = Color.BLACK;
+    private final Color COLOR_TEXTO_GRIS_OSCURO = new Color(55, 65, 81);
+    private final Color COLOR_BORDE = new Color(203, 213, 225);
 
     // === DAOs ===
     private final ParqueaderoDAO pDao = new ParqueaderoDAO();
@@ -47,7 +44,6 @@ public class VistaPrincipal extends JFrame {
         setLocationRelativeTo(null);
         getContentPane().setBackground(COLOR_FONDO_APP);
 
-        // Look & Feel Nimbus para estilo moderno
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -73,9 +69,6 @@ public class VistaPrincipal extends JFrame {
         add(tabs);
     }
 
-    // ========================================================================
-    // 1. DASHBOARD MEJORADO (TEXTO NEGRO)
-    // ========================================================================
     private JPanel crearDashboardMejorado() {
         JPanel mainPanel = new JPanel(new GridLayout(2, 2, 20, 20));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
@@ -104,7 +97,7 @@ public class VistaPrincipal extends JFrame {
 
         JLabel lblIconTitle = new JLabel(icono + " " + titulo);
         lblIconTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblIconTitle.setForeground(COLOR_TEXTO_GRIS_OSCURO); // Texto gris oscuro
+        lblIconTitle.setForeground(COLOR_TEXTO_GRIS_OSCURO);
         lblIconTitle.setHorizontalAlignment(SwingConstants.LEFT);
 
         JLabel lblValor = new JLabel(valor);
@@ -117,36 +110,53 @@ public class VistaPrincipal extends JFrame {
         return card;
     }
 
-    // ========================================================================
-    // 2. PARQUEADEROS ESTILIZADO (TEXTO NEGRO)
-    // ========================================================================
     private JPanel crearPanelParqueaderosEstilizado() {
         JPanel p = new JPanel(new BorderLayout(15, 15));
         p.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         p.setBackground(COLOR_FONDO_APP);
 
-        JPanel form = new JPanel(new GridLayout(4, 2, 10, 10));
+        // Panel de formulario mejor alineado
+        JPanel form = new JPanel(new GridLayout(2, 4, 15, 15));
         form.setBackground(COLOR_TARJETA);
-        form.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        form.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JTextField tNom = crearInputClaro();
         JTextField tDir = crearInputClaro();
         JTextField tCap = crearInputClaro();
         JTextField tTar = crearInputClaro();
 
-        form.add(crearLabel("Nombre:")); form.add(tNom);
-        form.add(crearLabel("Dirección:")); form.add(tDir);
-        form.add(crearLabel("Capacidad:")); form.add(tCap);
-        form.add(crearLabel("Tarifa ($):")); form.add(tTar);
+        // Fila 1
+        form.add(crearLabel("Nombre:"));
+        form.add(tNom);
+        form.add(crearLabel("Dirección:"));
+        form.add(tDir);
+        
+        // Fila 2
+        form.add(crearLabel("Capacidad:"));
+        form.add(tCap);
+        form.add(crearLabel("Tarifa ($):"));
+        form.add(tTar);
 
+        // Panel del botón
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        btnPanel.setBackground(COLOR_TARJETA);
         JButton btn = new JButton("💾 Guardar Parqueadero");
         estilizarBoton(btn, COLOR_AZUL_BRILLANTE);
-        form.add(new JLabel()); form.add(btn);
+        btnPanel.add(btn);
 
-        p.add(form, BorderLayout.NORTH);
+        // Panel superior (formulario + botón)
+        JPanel topPanel = new JPanel(new BorderLayout(10, 10));
+        topPanel.setBackground(COLOR_FONDO_APP);
+        topPanel.add(form, BorderLayout.CENTER);
+        topPanel.add(btnPanel, BorderLayout.SOUTH);
 
-        JTable t = crearTabla(new String[]{"ID", "Nombre", "Dirección", "Capacidad", "Tarifa"});
-        p.add(new JScrollPane(t), BorderLayout.CENTER);
+        p.add(topPanel, BorderLayout.NORTH);
+
+        String[] cols = {"ID", "Nombre", "Dirección", "Capacidad", "Tarifa"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0);
+        JTable table = new JTable(model);
+        estilizarTabla(table);
+        p.add(new JScrollPane(table), BorderLayout.CENTER);
 
         btn.addActionListener(e -> {
             try {
@@ -157,14 +167,14 @@ public class VistaPrincipal extends JFrame {
                 par.setTarifaPorHora(Double.parseDouble(tTar.getText()));
                 pDao.agregar(par);
                 JOptionPane.showMessageDialog(this, "Guardado con éxito", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            } catch(Exception ex) { JOptionPane.showMessageDialog(this, "Error: "+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); }
+                tNom.setText(""); tDir.setText(""); tCap.setText(""); tTar.setText("");
+            } catch(Exception ex) { 
+                JOptionPane.showMessageDialog(this, "Error: "+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); 
+            }
         });
         return p;
     }
 
-    // ========================================================================
-    // 3. ESPACIOS ESTILIZADO (TEXTO NEGRO)
-    // ========================================================================
     private JPanel crearPanelEspaciosEstilizado() {
         JPanel p = new JPanel(new BorderLayout(15, 15));
         p.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -172,21 +182,26 @@ public class VistaPrincipal extends JFrame {
 
         JPanel form = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
         form.setBackground(COLOR_TARJETA);
-        form.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        form.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JTextField tId = crearInputClaro(5);
-        JTextField tNum = crearInputClaro(10);
+        JTextField tNum = crearInputClaro(15);
         JButton btn = new JButton("➕ Crear Espacio");
         estilizarBoton(btn, COLOR_AZUL_BRILLANTE);
 
-        form.add(crearLabel("ID Parqueadero:")); form.add(tId);
-        form.add(crearLabel("Número (Ej: A-01):")); form.add(tNum);
+        form.add(crearLabel("ID Parqueadero:"));
+        form.add(tId);
+        form.add(crearLabel("Número (Ej: A-01):"));
+        form.add(tNum);
         form.add(btn);
 
         p.add(form, BorderLayout.NORTH);
 
-        JTable t = crearTabla(new String[]{"ID", "ID Parq", "Número", "Estado"});
-        p.add(new JScrollPane(t), BorderLayout.CENTER);
+        String[] cols = {"ID", "ID Parq", "Número", "Estado"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0);
+        JTable table = new JTable(model);
+        estilizarTabla(table);
+        p.add(new JScrollPane(table), BorderLayout.CENTER);
 
         btn.addActionListener(e -> {
             try {
@@ -196,39 +211,45 @@ public class VistaPrincipal extends JFrame {
                 esp.setEstado(true);
                 eDao.agregar(esp);
                 JOptionPane.showMessageDialog(this, "Espacio creado", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            } catch(Exception ex) { JOptionPane.showMessageDialog(this, "Error: "+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); }
+                tNum.setText("");
+            } catch(Exception ex) { 
+                JOptionPane.showMessageDialog(this, "Error: "+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); 
+            }
         });
         return p;
     }
 
-    // ========================================================================
-    // 4. ENTRADA / SALIDA ESTILIZADO (TEXTO NEGRO)
-    // ========================================================================
     private JPanel crearPanelCarrosEstilizado() {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         mainPanel.setBackground(COLOR_FONDO_APP);
 
-        JPanel formPanel = new JPanel(new GridLayout(2, 4, 10, 10));
+        // Formulario mejor alineado
+        JPanel formPanel = new JPanel(new GridLayout(2, 4, 15, 15));
         formPanel.setBackground(COLOR_TARJETA);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        formPanel.setMaximumSize(new Dimension(1000, 120));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        formPanel.setMaximumSize(new Dimension(1000, 130));
 
         JTextField txtPlaca = crearInputClaro();
         JTextField txtMarca = crearInputClaro();
         JTextField txtModelo = crearInputClaro();
         JTextField txtColor = crearInputClaro();
 
-        formPanel.add(crearLabel("Placa:")); formPanel.add(txtPlaca);
-        formPanel.add(crearLabel("Marca:")); formPanel.add(txtMarca);
-        formPanel.add(crearLabel("Modelo:")); formPanel.add(txtModelo);
-        formPanel.add(crearLabel("Color:")); formPanel.add(txtColor);
+        formPanel.add(crearLabel("Placa:"));
+        formPanel.add(txtPlaca);
+        formPanel.add(crearLabel("Marca:"));
+        formPanel.add(txtMarca);
+        formPanel.add(crearLabel("Modelo:"));
+        formPanel.add(txtModelo);
+        formPanel.add(crearLabel("Color:"));
+        formPanel.add(txtColor);
 
         mainPanel.add(formPanel);
         mainPanel.add(Box.createVerticalStrut(15));
 
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        // Panel de botones
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnPanel.setBackground(COLOR_FONDO_APP);
         btnPanel.setMaximumSize(new Dimension(1000, 60));
 
@@ -252,11 +273,15 @@ public class VistaPrincipal extends JFrame {
         scroll.setPreferredSize(new Dimension(900, 300));
         mainPanel.add(scroll);
 
+        // Lógica de botones (igual que antes)
         btnEntrada.addActionListener(e -> {
             try {
                 if(txtPlaca.getText().isEmpty()) throw new Exception("Falta Placa");
                 Espacio libre = eDao.buscarEspacioLibre(1);
-                if(libre == null) { JOptionPane.showMessageDialog(this, "No hay espacios libres", "Lleno", JOptionPane.WARNING_MESSAGE); return; }
+                if(libre == null) { 
+                    JOptionPane.showMessageDialog(this, "No hay espacios libres", "Lleno", JOptionPane.WARNING_MESSAGE); 
+                    return; 
+                }
 
                 Carro c = new Carro();
                 c.setPlaca(txtPlaca.getText().toUpperCase());
@@ -279,7 +304,10 @@ public class VistaPrincipal extends JFrame {
 
         btnSalida.addActionListener(e -> {
             int row = tableCarros.getSelectedRow();
-            if(row < 0) { JOptionPane.showMessageDialog(this, "Selecciona un carro de la tabla", "Advertencia", JOptionPane.WARNING_MESSAGE); return; }
+            if(row < 0) { 
+                JOptionPane.showMessageDialog(this, "Selecciona un carro de la tabla", "Advertencia", JOptionPane.WARNING_MESSAGE); 
+                return; 
+            }
 
             try {
                 int idCarro = (int) modelCarros.getValueAt(row, 0);
@@ -325,35 +353,28 @@ public class VistaPrincipal extends JFrame {
         return mainPanel;
     }
 
-    // ========================================================================
-    // 5. HISTORIAL ESTILIZADO (TEXTO NEGRO)
-    // ========================================================================
     private JPanel crearPanelHistorialEstilizado() {
         JPanel p = new JPanel(new BorderLayout());
         p.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         p.setBackground(COLOR_FONDO_APP);
 
         modelHistorial = new DefaultTableModel(new String[]{"Placa", "Marca", "Modelo", "Color", "Espacio", "Entrada", "Salida", "Horas", "Total"}, 0);
-        JTable t = new JTable(modelHistorial);
-        estilizarTabla(t);
+        JTable table = new JTable(modelHistorial);
+        estilizarTabla(table);
         
-        p.add(new JScrollPane(t), BorderLayout.CENTER);
+        p.add(new JScrollPane(table), BorderLayout.CENTER);
         cargarHistorialSimple();
         return p;
     }
 
-    // ========================================================================
-    // UTILIDADES DE ESTILO (TEXTO NEGRO)
-    // ========================================================================
-
-    // Input con fondo BLANCO y texto NEGRO para legibilidad
+    // Métodos auxiliares
     private JTextField crearInputClaro() {
         JTextField f = new JTextField();
         f.setBackground(Color.WHITE);
         f.setForeground(COLOR_TEXTO_NEGRO);
         f.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(COLOR_BORDE),
-            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
         return f;
     }
@@ -364,7 +385,6 @@ public class VistaPrincipal extends JFrame {
         return f;
     }
 
-    // Labels en Negro o Gris Oscuro
     private JLabel crearLabel(String text) {
         JLabel l = new JLabel(text);
         l.setForeground(COLOR_TEXTO_GRIS_OSCURO);
@@ -374,33 +394,26 @@ public class VistaPrincipal extends JFrame {
 
     private void estilizarBoton(JButton btn, Color bg) {
         btn.setBackground(bg);
-        btn.setForeground(Color.WHITE); // Texto del botón sigue siendo blanco para contraste
+        btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
-    private JTable crearTabla(String[] cols) {
-        DefaultTableModel m = new DefaultTableModel(cols, 0);
-        JTable t = new JTable(m);
-        estilizarTabla(t);
-        return t;
-    }
-
-    // Tabla con encabezados oscuros pero texto de celdas NEGRO
-    private void estilizarTabla(JTable t) {
-        t.setBackground(Color.WHITE);
-        t.setForeground(COLOR_TEXTO_NEGRO); // Texto de las celdas en NEGRO
-        t.setSelectionBackground(COLOR_AZUL_BRILLANTE);
-        t.setSelectionForeground(Color.WHITE);
-        t.setGridColor(COLOR_BORDE);
+    private void estilizarTabla(JTable table) {
+        table.setBackground(Color.WHITE);
+        table.setForeground(COLOR_TEXTO_NEGRO);
+        table.setSelectionBackground(COLOR_AZUL_BRILLANTE);
+        table.setSelectionForeground(Color.WHITE);
+        table.setGridColor(COLOR_BORDE);
+        table.setRowHeight(25);
         
-        JTableHeader h = t.getTableHeader();
-        h.setBackground(new Color(30, 41, 59)); // Encabezado oscuro
-        h.setForeground(Color.WHITE);           // Texto encabezado blanco
-        h.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        h.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, COLOR_BORDE));
+        JTableHeader header = table.getTableHeader();
+        header.setBackground(new Color(240, 240, 240));
+        header.setForeground(COLOR_TEXTO_NEGRO);  // TEXTO NEGRO EN ENCABEZADOS
+        header.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, COLOR_BORDE));
     }
 
     private int getCount(Object dao) {
@@ -455,5 +468,4 @@ public class VistaPrincipal extends JFrame {
             ps.executeUpdate();
         }
     }
-}    
-
+}
